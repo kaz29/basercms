@@ -374,8 +374,9 @@ class BlogHelperTest extends BaserTestCase {
  * @dataProvider getCategoryListDataProvider
  */
 	public function testGetCategoryList($depth, $count, $options, $expected) {
+		/* @var BlogCategory $BlogCategory */
 		$BlogCategory = ClassRegistry::init('Blog.BlogCategory');
-		$categories = $BlogCategory->getCategoryList(1, array('viewCount' => true, 'depth' => 3));
+		$categories = $BlogCategory->getCategoryList(1, ['viewCount' => true, 'depth' => 3, 'siteId' => 0]);
 		$result = $this->Blog->getCategoryList($categories, $depth, $count, $options);
 		$this->assertEquals($result, $expected, 'カテゴリーの一覧をリストタグで正しく取得できません');
 	}
@@ -601,13 +602,13 @@ class BlogHelperTest extends BaserTestCase {
 	public function testGetCategories() {
 		$this->loadFixtures('BlogCategoryTree');
 		// １階層、かつ、siteId=0
-		$categories = $this->Blog->getCategories();
+		$categories = $this->Blog->getCategories(['siteId' => 0]);
 		$this->assertEquals(1, count($categories));
 		// サイトフィルター解除
 		$categories = $this->Blog->getCategories(['siteId' => false]);
 		$this->assertEquals(2, count($categories));
 		// 深さ指定（子）
-		$categories = $this->Blog->getCategories(['depth' => 2]);
+		$categories = $this->Blog->getCategories(['siteId' => 0, 'depth' => 2]);
 		$this->assertEquals(1, count($categories[0]['BlogCategory']['children']));
 		// 深さ指定（孫）
 		$categories = $this->Blog->getCategories(['depth' => 3]);
