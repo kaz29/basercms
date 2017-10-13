@@ -385,7 +385,7 @@ class BcBaserHelper extends AppHelper {
  * @return void
  */
 	public function title($separator = '｜', $categoryTitleOn = null) {
-		echo '<title>' . strip_tags($this->getTitle($separator, $categoryTitleOn)) . "</title>\n";
+		echo '<title>' . h($this->getTitle($separator, $categoryTitleOn)) . "</title>\n";
 	}
 
 /**
