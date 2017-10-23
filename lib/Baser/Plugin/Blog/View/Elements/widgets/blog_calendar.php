@@ -98,20 +98,20 @@ $entryDates = $data['entryDates'];
 		$year4 = $year;
 		$month4 = $month + 1;
 	}
-
+var_dump(date('M', strtotime(date('Y') . '/' . $month3 . '/1')));
 //カレンダーを表示するHTML
 	print '<table class="blog-calendar"><tr><td colspan=7>';
 	print "<center>";
 	if ($data['prev']) {
-		print $this->BcBaser->getLink($month3 . "月", $this->BcBaser->getBlogContentsUrl($id) . 'archives/date/' . $year3 . '/' . $month3, null, false);
+		print $this->BcBaser->getLink(__($month3 . "月"), $this->BcBaser->getBlogContentsUrl($id) . 'archives/date/' . $year3 . '/' . $month3, null, false);
 	} else {
-		print __(date('M', strtotime(date('Y') . '/' . $month3 . '/1')));
+		print __($month3 . "月");
 	}
 	print "　" . $year . "/" . $month . "　";
 	if ($data['next']) {
-		print $this->BcBaser->getLink($month4 . "月", $this->BcBaser->getBlogContentsUrl($id) . 'archives/date/' . $year4 . '/' . $month4, null, false);
+		print $this->BcBaser->getLink(__($month4 . "月"), $this->BcBaser->getBlogContentsUrl($id) . 'archives/date/' . $year4 . '/' . $month4, null, false);
 	} else {
-		print __(date('M', strtotime(date('Y') . '/' . $month4 . '/1')));
+		print __($month4 . "月");
 	}
 	print "</td></tr>";
 
