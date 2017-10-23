@@ -385,7 +385,7 @@ class BcBaserHelper extends AppHelper {
  * @return void
  */
 	public function title($separator = '｜', $categoryTitleOn = null) {
-		echo '<title>' . strip_tags($this->getTitle($separator, $categoryTitleOn)) . "</title>\n";
+		echo '<title>' . h($this->getTitle($separator, $categoryTitleOn)) . "</title>\n";
 	}
 
 /**
@@ -863,7 +863,7 @@ class BcBaserHelper extends AppHelper {
  * 《利用例》
  * $this->BcBaser->css('admin/import')
  * 
- * @param string $path CSSファイルのパス（css フォルダからの相対パス）拡張子は省略可
+ * @param mixed $path CSSファイルのパス（css フォルダからの相対パス）拡張子は省略可
  * @param mixed $options オプション
  *	（配列の場合）
  *	- `rel` : rel属性（初期値 : 'stylesheet'）
@@ -2657,21 +2657,30 @@ END_FLASH;
 	}
 
 /**
- * コンテンツ管理用のURLを取得する
+ * コンテンツ管理用のURLより、正式なURLを取得する
  * 
  * @param string $url コンテンツ管理用URLの元データ
  *	省略時は request より現在のデータを取得
  *	request が取得できない場合は、トップページのURLを設定
+ * @param bool $full http からのフルのURLかどうか
+ * @param bool $useSubDomain サブドメインを利用しているかどうか
+ * 	省略時は現在のサイト情報から取得する
+ * @param bool $base $full が false の場合、ベースとなるURLを含めるかどうか
  * @return string
  */
-	public function getContentsUrl($url = null) {
-		if(empty($url) && !empty($this->request->params['Content']['url'])) {
-			$url = $this->request->params['Content']['url'];
-		} else {
-			$url = '/';
+	public function getContentsUrl($url = null, $full = false, $useSubDomain = null, $base = false) {
+		if(!$url) {
+			if(!empty($this->request->params['Content']['url'])) {
+				$url = $this->request->params['Content']['url'];
+			} else {
+				$url = '/';
+			}
 		}
-		$site = BcSite::findCurrent();
-		return $this->BcContents->getUrl($url, false, $site->useSubDomain);
+		if(is_null($useSubDomain)) {
+			$site = BcSite::findCurrent();
+			$useSubDomain = $site->useSubDomain;
+		}
+		return $this->BcContents->getUrl($url, $full, $useSubDomain, $base);
 	}
 
 /**
@@ -2700,6 +2709,21 @@ END_FLASH;
  */
 	public function getParentFolder($id, $direct = true) {
 		return $this->BcContents->getParent($id, $direct);
+	}
+
+/**
+ * エンティティIDからコンテンツの情報を取得
+ *
+ * @param string $contentType コンテンツタイプ
+ * ('Page','MailContent','BlogContent','ContentFolder')
+ * @param int $id エンティティID
+ * @param string $field 取得したい値
+ *  'name','url','title'など　初期値：Null 
+ *  省略した場合配列を取得
+ * @return array or bool
+ */
+	public function getContentByEntityId($id, $contentType, $field = null){
+		return $this->BcContents->getContentByEntityId($id,$contentType, $field);
 	}
 
 }

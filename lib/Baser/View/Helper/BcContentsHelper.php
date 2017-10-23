@@ -224,13 +224,16 @@ class BcContentsHelper extends AppHelper {
 	}
 
 /**
- * フルURLを取得する
+ * コンテンツ管理上のURLを元に正式なURLを取得する
  *
- * @param string $url
- * @param bool $useSubDomain
+ * @param string $url コンテンツ管理上のURL
+ * @param bool $full http からのフルのURLかどうか
+ * @param bool $useSubDomain サブドメインを利用しているかどうか
+ * @param bool $base $full が false の場合、ベースとなるURLを含めるかどうか
+ * @return string URL
  */
-	public function getUrl($url, $full = false, $useSubDomain = false) {
-		return $this->_Content->getUrl($url, $full, $useSubDomain);
+	public function getUrl($url, $full = false, $useSubDomain = false, $base = false) {
+		return $this->_Content->getUrl($url, $full, $useSubDomain, $base);
 	}
 
 /**
@@ -494,5 +497,30 @@ class BcContentsHelper extends AppHelper {
 		}
 		return true;
 	}
-	
+
+/**
+ * エンティティIDからコンテンツの情報を取得
+ *
+ * @param string $contentType コンテンツタイプ
+ * ('Page','MailContent','BlogContent','ContentFolder')
+ * @param int $id エンティティID
+ * @param string $field 取得したい値
+ *  'name','url','title'など　初期値：Null 
+ *  省略した場合配列を取得
+ * @return array or string or bool
+ */
+	public function getContentByEntityId($id, $contentType, $field = null){
+		$conditions = array_merge($this->_Content->getConditionAllowPublish(), ['type' => $contentType, 'entity_id' => $id]);
+		$content = $this->_Content->find('first', ['conditions' => $conditions, 'cache' => false]);
+		if(!empty($content)){
+			if($field){
+				return $content ['Content'][$field];
+			} else {
+				return $content;
+			}
+		} else {
+			return false;
+		}
+	}
+
 }

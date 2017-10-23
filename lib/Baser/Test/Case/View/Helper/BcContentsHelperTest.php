@@ -25,7 +25,7 @@ class BcContentsHelperTest extends BaserTestCase {
  * Fixtures
  * @var array 
  */
-	public $fixtures = array(
+	public $fixtures = [
 		'baser.View.Helper.BcContentsHelper.ContentBcContentsHelper',
 		'baser.Default.SiteConfig',
 		'baser.Default.Site',
@@ -34,7 +34,7 @@ class BcContentsHelperTest extends BaserTestCase {
 		'baser.Default.Favorite',
 		'baser.Default.Permission',
 		'baser.Default.ThemeConfig',
-	);
+	];
 
 /**
  * View
@@ -51,7 +51,7 @@ class BcContentsHelperTest extends BaserTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->_View = new BcAppView();
-		$this->_View->helpers = array('BcContents');
+		$this->_View->helpers = ['BcContents'];
 		$this->_View->loadHelpers();
 		$this->BcContents = $this->_View->BcContents;
 	}
@@ -117,17 +117,17 @@ class BcContentsHelperTest extends BaserTestCase {
 	}
 
 	public function getPageListDataProvider() {
-		return array(
+		return [
 			// PC版
-			array(1, 1, 7, 'トップページ', 'PC版１階層目のデータが正常に取得できません'),
-			array(1, 2, 4, 'サービス', 'PC版２階層目のデータが正常に取得できません'),
-			array(1, 3, 1, 'サブサービス１', 'PC版３階層目のデータが正常に取得できません'),
+			[1, 1, 7, 'トップページ', 'PC版１階層目のデータが正常に取得できません'],
+			[1, 2, 4, 'サービス', 'PC版２階層目のデータが正常に取得できません'],
+			[1, 3, 1, 'サブサービス１', 'PC版３階層目のデータが正常に取得できません'],
 			// ケータイ
-			array(2, 1, 3, 'トップページ', 'ケータイ版１階層目のデータが正常に取得できません'),
+			[2, 1, 3, 'トップページ', 'ケータイ版１階層目のデータが正常に取得できません'],
 			// スマホ
-			array(3, 1, 7, 'トップページ', 'スマホ版１階層目のデータが正常に取得できません'),
-			array(3, 2, 1, 'サービス１', 'スマホ版２階層目のデータが正常に取得できません')
-		);
+			[3, 1, 7, 'トップページ', 'スマホ版１階層目のデータが正常に取得できません'],
+			[3, 2, 1, 'サービス１', 'スマホ版２階層目のデータが正常に取得できません']
+		];
 	}
 
 /**
@@ -449,5 +449,37 @@ class BcContentsHelperTest extends BaserTestCase {
 			[99, false],
 		];
 	}
-
+/**
+ * エンティティIDからコンテンツの情報を取得
+ * getContentByEntityId
+ * 
+ * @param string $contentType コンテンツタイプ
+ * ('Page','MailContent','BlogContent','ContentFolder')
+ * @param int $id エンティティID
+ * @param string $field 取得したい値
+ *  'name','url','title'など　初期値：Null 
+ *  省略した場合配列を取得
+ * @param string|bool $expect 期待値
+ * @dataProvider getContentByEntityIdDataProvider
+ */	
+	public function testgetContentByEntityId($expect, $id, $contentType, $field) {
+		$result = $this->BcContents->getContentByEntityId($id, $contentType, $field);
+		$this->assertEquals($expect, $result);                       
+	}
+	
+	public function getContentByEntityIdDataProvider() {
+		return [
+			// 存在するID（0~2）を指定した場合
+			['/news/', '1', 'BlogContent', 'url'],
+			['/contact/', '1', 'MailContent', 'url'],
+			['/index', '1', 'Page', 'url'],
+			['/service/', '4', 'ContentFolder', 'url'],
+			['/service/sub_service/sub_service_1', '14', 'Page', 'url'],
+			['サービス２', '12', 'Page', 'title'],
+			// 存在しないIDを指定した場合
+			[false, '5', 'BlogContent', 'name'],
+			//指定がおかしい場合
+			[false, '5', 'Blog', 'url'],
+		];
+	}
 }

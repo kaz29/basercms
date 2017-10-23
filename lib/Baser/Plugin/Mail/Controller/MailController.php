@@ -146,7 +146,7 @@ class MailController extends MailAppController {
 				}
 			}
 			$this->Security->requireAuth('confirm', 'submit');
-			$this->Security->unlockedFields = array_merge($this->Security->unlockedFields, $disabledFields);
+			$this->set('unlockedFields', array_merge($this->Security->unlockedFields, $disabledFields));
 
 			// SSL設定
 			if ($this->dbDatas['mailContent']['MailContent']['ssl_on']) {
@@ -246,6 +246,11 @@ class MailController extends MailAppController {
 		} else {
 			// 入力データを整形し、モデルに引き渡す
 			$this->request->data = $this->MailMessage->create($this->MailMessage->autoConvert($this->request->data));
+			
+			// fileタイプへの送信データ検証
+			if (!$this->_checkDirectoryRraversal()) {
+				$this->redirect($this->request->params['Content']['url'] . '/index');
+			}
 
 			// 画像認証を行う
 			if ($this->request->params['Site']['name'] != 'mobile' && $this->dbDatas['mailContent']['MailContent']['auth_captcha']) {
@@ -309,7 +314,12 @@ class MailController extends MailAppController {
 					unset($this->request->data['MailMessage']['auth_captcha']);
 				}
 			}
-
+			
+			// fileタイプへの送信データ検証
+			if (!$this->_checkDirectoryRraversal()) {
+				$this->redirect($this->request->params['Content']['url'] . '/index');
+			}
+			
 			$this->MailMessage->create($this->request->data);
 
 			// データの入力チェックを行う
@@ -483,6 +493,11 @@ class MailController extends MailAppController {
 
 		// ユーザーに送信
 		if (!empty($userMail)) {
+			$site = BcSite::findCurrent();
+			$agentTemplate = false;
+			if($site && $site->device) {
+				$agentTemplate = true;
+			}
 			$data['other']['mode'] = 'user';
 			$options = array(
 				'fromName'	=> $mailContent['sender_name'],
@@ -490,6 +505,7 @@ class MailController extends MailAppController {
 				'template'	=> 'Mail.' . $mailContent['mail_template'],
 				'replyTo'		=> $fromAdmin,
 				'attachments'	=> $attachments,
+				'agentTemplate' => $agentTemplate,
 				'additionalParameters'	 => '-f ' . $fromAdmin,
 			);
 			$this->sendMail($userMail, $mailContent['subject_user'], $data, $options);
@@ -514,6 +530,31 @@ class MailController extends MailAppController {
 			);
 			$this->sendMail($adminMail, $mailContent['subject_admin'], $data, $options);
 		}
+	}
+	
+/**
+ * ファイルフィールドのデータがアップロードされたファイルパスであることを検証する
+ * 
+ * @return boolean
+ */
+	private function _checkDirectoryRraversal() {
+		if (!isset($this->dbDatas['mailFields']) 
+			|| !is_array($this->dbDatas['mailFields'])
+			|| empty($this->MailMessage->Behaviors->BcUpload->settings['MailMessage'])) {
+			return false;
+		}
+		
+		$settings = $this->MailMessage->Behaviors->BcUpload->settings['MailMessage'];
+		
+		foreach($this->dbDatas['mailFields'] as $mailField) {
+			if ($mailField['MailField']['type'] == 'file' &&
+				!empty($this->request->data['MailMessage'][$mailField['MailField']['field_name']]['tmp_name'])) {
+				if (!is_uploaded_file($this->request->data['MailMessage'][$mailField['MailField']['field_name']]['tmp_name'])) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 /**

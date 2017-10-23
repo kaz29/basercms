@@ -166,6 +166,10 @@ class BlogPostsController extends BlogAppController {
 			$options = ($event->result === null || $event->result === true) ? $event->data['options'] : $event->result;
 		}
 
+		$this->BlogPost->BlogContent->unbindModel(array('hasMany' => array('BlogPost', 'BlogCategory')));
+		$this->BlogPost->BlogCategory->unbindModel(array('hasMany' => array('BlogPost')));
+		$this->BlogPost->User->unbindModel(array('hasMany' => array('Favorite'), 'belongsTo' => array('UserGroup')));
+
 		$this->paginate = $options;
 		$this->set('posts', $this->paginate('BlogPost'));
 
@@ -256,9 +260,11 @@ class BlogPostsController extends BlogAppController {
 			unset($data['BlogPost']['blog_category_id']);
 		}
 
-		$_conditions = $this->postConditions($data);
-		if ($_conditions) {
-			$conditions = am($conditions, $_conditions);
+		if(isset($data['BlogPost']['status'])) {
+			$conditions['BlogPost.status'] = $data['BlogPost']['status'];
+		}
+		if(isset($data['BlogPost']['user_id'])) {
+			$conditions['BlogPost.user_id'] = $data['BlogPost']['user_id'];
 		}
 
 		if ($name) {

@@ -536,8 +536,9 @@ function topLevelUrl($lastSlash = true) {
 	if (isConsole() && !Configure::check('BcEnv.host')) {
 		return Configure::read('App.fullBaseUrl');
 	}
+	$request = Router::getRequest();
 	$protocol = 'http://';
-	if (!empty($_SERVER['HTTPS'])) {
+	if (!empty($request) && $request->is('ssl')) {
 		$protocol = 'https://';
 	}
 	$host = Configure::read('BcEnv.host');
@@ -1037,7 +1038,10 @@ function getTableList() {
 	$pluginFiles = [];
 	foreach($plugins as $plugin) {
 		$path = null;
-		if (is_dir(APP . 'Plugin' . DS . $plugin . DS . 'Config' . DS . 'Schema')) {
+		$themePath = BASER_THEMES . Configure::read('BcSite.theme') . DS;
+		if (is_dir($themePath . 'Plugin' . DS . $plugin . DS . 'Config' . DS . 'Schema')) {
+			$path = $themePath . 'Plugin' . DS . $plugin . DS . 'Config' . DS . 'Schema';
+		}elseif (is_dir(APP . 'Plugin' . DS . $plugin . DS . 'Config' . DS . 'Schema')) {
 			$path = APP . 'Plugin' . DS . $plugin . DS . 'Config' . DS . 'Schema';
 		} elseif (is_dir(BASER_PLUGINS . $plugin . DS . 'Config' . DS . 'Schema')) {
 			$path = BASER_PLUGINS . $plugin . DS . 'Config' . DS . 'Schema';

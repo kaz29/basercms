@@ -855,6 +855,9 @@ class BcAppModel extends Model {
 			'conditions' => [$this->alias . '.id' => $id],
 			'fields' => [$this->alias . '.id', $this->alias . '.sort']
 		]);
+		if(!$current) {
+			return false;
+		}
 
 		// 変更相手のデータを取得
 		if ($offset > 0) { // DOWN
@@ -1654,6 +1657,34 @@ class BcAppModel extends Model {
 			}
 		}
 		return $paths;
+	}
+
+/**
+ * レコードデータの消毒をおこなう
+ * @return array
+ */
+	public function sanitizeRecord($record) {
+		foreach ($record as $key => $value) {
+				$record[$key] = $this->sanitize($value);
+		}
+		return $record;
+	}
+
+/**
+ * 単体データの消毒を行う
+ * 配列には対応しない
+ * @param $data
+ * @return mixed|string
+ */
+	public function sanitize($value) {
+		if (!is_array($value)) {
+			// 既に htmlspecialchars を実行済のものについて一旦元の形式に復元した上で再度サイニタイズ処理をかける。
+			$value = str_replace("&lt;!--", "<!--", $value);
+			$value = htmlspecialchars($value);
+			return $value;
+		}else {
+			return $value;
+		}
 	}
 
 }

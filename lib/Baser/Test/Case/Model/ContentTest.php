@@ -20,13 +20,13 @@ App::uses('Content', 'Model');
  */
 class ContentTest extends BaserTestCase {
 
-	public $fixtures = array(
+	public $fixtures = [
 		'baser.Model.Content.ContentStatusCheck',
 		'baser.Routing.Route.BcContentsRoute.SiteBcContentsRoute',
 		'baser.Routing.Route.BcContentsRoute.ContentBcContentsRoute',
 		'baser.Default.SiteConfig',
 		'baser.Default.User',
-	);
+	];
 
 /**
  * set up
@@ -97,6 +97,32 @@ class ContentTest extends BaserTestCase {
 	}
 
 /**
+ * testGetUrl の base テスト
+ * 
+ * @param $url
+ * @param $base
+ * @param $expects
+ * @dataProvider getUrlBaseDataProvider
+ */
+	public function testGetUrlBase($url, $base, $useBase, $expects) {
+		Configure::write('app.baseUrl', $base);
+		$request = $this->_getRequest('/');
+		$request->base = $base;
+		Router::setRequestInfo($request);
+		$result = $this->Content->getUrl($url, false, false, $useBase);
+		$this->assertEquals($result, $expects);
+	}
+	
+	public function getUrlBaseDataProvider() {
+		return [
+			['/news/archives/1', '', true, '/news/archives/1'],
+			['/news/archives/1', '', false, '/news/archives/1'],
+			['/news/archives/1', '/sub', true, '/sub/news/archives/1'],
+			['/news/archives/1', '/sub', false, '/news/archives/1'],
+		];
+	}
+
+/**
  * testCreateUrl
  * 
  * @param int $id コンテンツID
@@ -109,6 +135,7 @@ class ContentTest extends BaserTestCase {
 	
 	public function createUrlDataProvider() {
 		return [
+			["hogehoge'/@<>1",''],
 			[1, '/'],
 			[2, '/m/'],
 			[3, '/s/'],
